@@ -28,7 +28,6 @@ public class Cip {
         JWSObject encjwsObject = new JWSObject(header, contentPayload);
         encjwsObject.sign(getSigner());
         String token = encjwsObject.serialize();
-
         //JWSObject jwsObject = JWSObject.parse("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJjdWlkIjoiMTIzNDUiLCJzY29wZSI6WyJhY2Nlc3MiXSwiZXhwIjoxNDg0ODE1MTg5LCJqdGkiOiI2YTY4NTVhYS0xMzk5LTRlNmYtYTRlYS03NWQ4MmQ0ZWM4MzMiLCJjbGllbnRfaWQiOiJpYnMifQ.aYHPz6QZzQ5P4xESg9VeAWnmNpC7aDKZcO9He8E9JPXY9FvBIIQmfrXzNrRghqXS5nF9uim0LTWsH1Qkq8Z7LV5zReioRcSJfUJdjwz-KKm6JvHWdplv7i3qt1QjF2_YRnTKbDfDO5NfYBM4Wy7iTF2Wt2pMxeG_YxCIUudy3AmN_JxWF9roCIpTv0qTlrgLlyqFS7CwmWVdu7jFw4JagB48iW49xpsbZPvei6C6vbJPfPH49w9bPZgGNuMxfx2DAyA5RWcnCe1dMKyesUPKEtRnk0mz3ffqXuKJS0Z52CD9WcELZ6nFGgOzV3c-bgC5ffo_ZGhNtH9jBrIGP23sMg");
         JWSObject jwsObject = JWSObject.parse(token);
         File filePubK = new File("/rsa/publickey");
@@ -39,7 +38,28 @@ public class Cip {
         JWSVerifier verifier = new RSASSAVerifier(rsaPublicKey);
         final boolean verify = jwsObject.verify(verifier);
         System.out.println("token = " + token);
+    }
 
+    public static String generateTokenForUser(String jsonBody) throws Exception {
+        kf = KeyFactory.getInstance("RSA");
+        JWSAlgorithm alg = JWSAlgorithm.RS256;
+        JWSHeader header = new JWSHeader.Builder(alg)
+                .type(JOSEObjectType.JWT)
+                .build();
+        Payload contentPayload = new Payload(jsonBody);
+        JWSObject encjwsObject = new JWSObject(header, contentPayload);
+        encjwsObject.sign(getSigner());
+        String token = encjwsObject.serialize();
+        //JWSObject jwsObject = JWSObject.parse("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJjdWlkIjoiMTIzNDUiLCJzY29wZSI6WyJhY2Nlc3MiXSwiZXhwIjoxNDg0ODE1MTg5LCJqdGkiOiI2YTY4NTVhYS0xMzk5LTRlNmYtYTRlYS03NWQ4MmQ0ZWM4MzMiLCJjbGllbnRfaWQiOiJpYnMifQ.aYHPz6QZzQ5P4xESg9VeAWnmNpC7aDKZcO9He8E9JPXY9FvBIIQmfrXzNrRghqXS5nF9uim0LTWsH1Qkq8Z7LV5zReioRcSJfUJdjwz-KKm6JvHWdplv7i3qt1QjF2_YRnTKbDfDO5NfYBM4Wy7iTF2Wt2pMxeG_YxCIUudy3AmN_JxWF9roCIpTv0qTlrgLlyqFS7CwmWVdu7jFw4JagB48iW49xpsbZPvei6C6vbJPfPH49w9bPZgGNuMxfx2DAyA5RWcnCe1dMKyesUPKEtRnk0mz3ffqXuKJS0Z52CD9WcELZ6nFGgOzV3c-bgC5ffo_ZGhNtH9jBrIGP23sMg");
+        JWSObject jwsObject = JWSObject.parse(token);
+        File filePubK = new File("/rsa/publickey");
+        byte[] encodedKey = Base64.decode(FileUtils.readFileToString(filePubK));
+        X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(encodedKey);
+        PublicKey publicKey = kf.generatePublic(pubKeySpec);
+        RSAPublicKey rsaPublicKey = (RSAPublicKey) publicKey;
+        JWSVerifier verifier = new RSASSAVerifier(rsaPublicKey);
+        final boolean verify = jwsObject.verify(verifier);
+        return token;
     }
 
     public static RSASSASigner getSigner() throws Exception {
